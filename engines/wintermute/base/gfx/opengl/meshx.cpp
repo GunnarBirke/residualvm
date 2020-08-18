@@ -69,6 +69,8 @@ bool MeshX::loadFromX(const Common::String &filename, XFileLexer &lexer, Common:
 	// TODO: might have to generate normals if file does not contain any
 	_vertexNormalData = new float[3 * _vertexCount]();
 
+	bool foundNormals = false;
+
 	parsePositionCoords(lexer);
 
 	int faceCount = lexer.readInt();
@@ -92,6 +94,7 @@ bool MeshX::loadFromX(const Common::String &filename, XFileLexer &lexer, Common:
 			lexer.advanceOnOpenBraces();
 
 			parseNormalCoords(lexer);
+			foundNormals = true;
 		} else if (lexer.tokenIsIdentifier("MeshMaterialList")) {
 			lexer.advanceToNextToken();
 			lexer.advanceToNextToken();
@@ -134,11 +137,19 @@ bool MeshX::loadFromX(const Common::String &filename, XFileLexer &lexer, Common:
 
 			generateAdjacency();
 
+			if (!foundNormals) {
+				warning("No normals found in mesh defintion in file %s", filename.c_str());
+			}
+
 			return true;
 		} else {
 			warning("MeshX::loadFromX unknown token %i encountered", lexer.getTypeOfToken());
 			lexer.advanceToNextToken();
 		}
+	}
+
+	if (!foundNormals) {
+		warning("No normals found in mesh defintion in file %s", filename.c_str());
 	}
 
 	generateAdjacency();
